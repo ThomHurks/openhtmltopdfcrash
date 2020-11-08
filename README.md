@@ -1,4 +1,5 @@
 # openhtmltopdfcrash
 Reproducing a crash in OpenHtmltoPdf
 
-If the test succeeds, then the crash happened.
+# Reproduction case
+If the test in ```src/test``` succeeds, then the crash happened.
