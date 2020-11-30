@@ -4,22 +4,18 @@ import com.openhtmltopdf.extend.FSSupplier;
 import com.openhtmltopdf.outputdevice.helper.BaseRendererBuilder;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.springframework.core.io.ClassPathResource;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UncheckedIOException;
+import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
-public class OpenHtmlToPdfCrash {
+public class TestOpenHtmlToPdfCrash {
 
     @Test
-    public void reproduce() throws IOException {
+    public void reproduce(final @TempDir Path directory) throws IOException {
         final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         final PdfRendererBuilder pdfBuilder = new PdfRendererBuilder();
         pdfBuilder.useFastMode();
@@ -31,8 +27,10 @@ public class OpenHtmlToPdfCrash {
         final String html = new String(Files.readAllBytes(Paths.get(new ClassPathResource("crash.html").getURL().getPath())));
         pdfBuilder.withHtmlContent(html, null);
         pdfBuilder.toStream(outputStream);
-        final NullPointerException ex = assertThrows(NullPointerException.class, pdfBuilder::run);
-        assertEquals("org.apache.pdfbox.cos.COSArray.add(COSArray.java:62)", ex.getStackTrace()[0].toString());
+        pdfBuilder.run();
+        try (final OutputStream file = new FileOutputStream(directory.resolve("test.pdf").toFile())) {
+            outputStream.writeTo(file);
+        }
     }
 
     private static FSSupplier<InputStream> getFontAsFSSupplier(final String fontFile) {
